@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ReconAI — Multi-Source Reconciliation</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --border: #262b36;
+    --text: #e6e8eb;
+    --muted: #8b90a0;
+    --accent: #4f8cff;
+    --good: #33c07d;
+    --warn: #e0a63e;
+    --bad: #e05a5a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 40px 24px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .sub { color: var(--muted); margin-bottom: 28px; font-size: 14px; }
+  .controls { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; }
+  button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.5; cursor: default; }
+  label { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .summary { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    flex: 1;
+    min-width: 140px;
+  }
+  .card .num { font-size: 26px; font-weight: 600; }
+  .card .label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .exceptions { display: flex; flex-direction: column; gap: 10px; }
+  .exc {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--warn);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .exc .type { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--warn); font-weight: 600; }
+  .exc .detail { margin-top: 6px; font-size: 14px; }
+  .exc .ai { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 13px; color: var(--muted); }
+  .exc .ai b { color: var(--text); }
+  #status { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+  .empty { color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ReconAI — Multi-Source Reconciliation</h1>
+  <div class="sub">Matches orders, payments, and settlements. Flags anything that doesn't reconcile, with an AI-generated explanation for each exception.</div>
+
+  <div class="controls">
+    <button id="runBtn" onclick="runReconciliation()">Run Reconciliation</button>
+    <label><input type="checkbox" id="useAi"> Include AI explanations (requires API key on server)</label>
+  </div>
+
+  <div id="status"></div>
+  <div id="summary" class="summary"></div>
+  <div id="exceptions" class="exceptions"></div>
+</div>
+
+<script>
+async function runReconciliation() {
+  const btn = document.getElementById('runBtn');
+  const status = document.getElementById('status');
+  const useAi = document.getElementById('useAi').checked;
+  btn.disabled = true;
+  status.textContent = useAi ? "Running reconciliation + AI investigation..." : "Running reconciliation...";
+  document.getElementById('summary').innerHTML = "";
+  document.getElementById('exceptions').innerHTML = "";
+
+  try {
+    const res = await fetch(`/api/run-reconciliation?use_ai=${useAi}`, { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) {
+      status.textContent = "Error: " + (data.error || "unknown error");
+      btn.disabled = false;
+      return;
+    }
+    status.textContent = data.ai_error ? ("Done (AI layer failed: " + data.ai_error + ")") : "Done.";
+    renderSummary(data);
+    renderExceptions(data.exceptions);
+  } catch (e) {
+    status.textContent = "Request failed: " + e.message;
+  }
+  btn.disabled = false;
+}
+
+function renderSummary(data) {
+  document.getElementById('summary').innerHTML = `
+    <div class="card"><div class="num">${data.total_payments}</div><div class="label">Total Payments</div></div>
+    <div class="card"><div class="num">${data.clean_matches}</div><div class="label">Clean Matches</div></div>
+    <div class="card"><div class="num">${data.match_rate_pct}%</div><div class="label">Match Rate</div></div>
+    <div class="card"><div class="num">${data.exception_count}</div><div class="label">Exceptions</div></div>
+  `;
+}
+
+function renderExceptions(exceptions) {
+  const container = document.getElementById('exceptions');
+  if (!exceptions || exceptions.length === 0) {
+    container.innerHTML = '<div class="empty">No exceptions.</div>';
+    return;
+  }
+  container.innerHTML = exceptions.map(e => `
+    <div class="exc">
+      <div class="type">${e.type.replace(/_/g, ' ')}</div>
+      <div class="detail">${e.detail || ''}</div>
+      ${e.ai_investigation ? `
+        <div class="ai">
+          <div><b>Explanation:</b> ${e.ai_investigation.explanation || ''}</div>
+          <div><b>Suggested action:</b> ${e.ai_investigation.suggested_action || ''}</div>
+          <div><b>Confidence:</b> ${e.ai_investigation.confidence || ''}</div>
+        </div>` : ''}
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>
