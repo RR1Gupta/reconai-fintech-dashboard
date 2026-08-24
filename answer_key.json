@@ -1,0 +1,28 @@
+[
+  {
+    "type": "missing_settlement",
+    "payment_id": "PAY0041",
+    "detail": "Payment captured but no settlement record found."
+  },
+  {
+    "type": "fee_mismatch",
+    "payment_id": "PAY0008",
+    "detail": "Settlement amount does not match payment amount minus expected fee."
+  },
+  {
+    "type": "duplicate_payment",
+    "payment_id": "PAY0002_DUP",
+    "order_id": "ORD0002",
+    "detail": "Duplicate payment found for the same order_id."
+  },
+  {
+    "type": "orphan_settlement",
+    "payment_id": "PAY9999",
+    "detail": "Settlement exists with no matching payment record."
+  },
+  {
+    "type": "refund_partial",
+    "payment_id": "PAY0016",
+    "detail": "Payment partially refunded; settled amount will not match original order amount."
+  }
+]
