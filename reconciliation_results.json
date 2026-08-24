@@ -1,0 +1,62 @@
+{
+  "total_payments": 61,
+  "clean_matches": 56,
+  "match_rate_pct": 91.8,
+  "exception_count": 6,
+  "exceptions": [
+    {
+      "type": "fee_mismatch",
+      "payment_id": "PAY0008",
+      "order_id": "ORD0008",
+      "settlement_id": "SET0008",
+      "detail": "Expected settled amount ~12502.85, found 14378.28.",
+      "expected_amount": 12502.85,
+      "actual_amount": 14378.28
+    },
+    {
+      "type": "refund_partial",
+      "payment_id": "PAY0016",
+      "order_id": "ORD0016",
+      "settlement_id": "SET0016",
+      "detail": "Payment marked partially refunded; settlement will not match original order amount.",
+      "expected_amount": 3039.77,
+      "actual_amount": 4964.95
+    },
+    {
+      "type": "missing_settlement",
+      "payment_id": "PAY0041",
+      "order_id": "ORD0041",
+      "settlement_id": null,
+      "detail": "Payment captured but no settlement record found.",
+      "expected_amount": null,
+      "actual_amount": null
+    },
+    {
+      "type": "missing_settlement",
+      "payment_id": "PAY0002_DUP",
+      "order_id": "ORD0002",
+      "settlement_id": null,
+      "detail": "Payment captured but no settlement record found.",
+      "expected_amount": null,
+      "actual_amount": null
+    },
+    {
+      "type": "duplicate_payment",
+      "payment_id": "PAY0002_DUP",
+      "order_id": "ORD0002",
+      "settlement_id": null,
+      "detail": "Multiple payments found for order_id ORD0002: ['PAY0002', 'PAY0002_DUP']",
+      "expected_amount": null,
+      "actual_amount": null
+    },
+    {
+      "type": "orphan_settlement",
+      "payment_id": "PAY9999",
+      "order_id": null,
+      "settlement_id": "SET9999",
+      "detail": "Settlement SET9999 references payment_id PAY9999 which does not exist.",
+      "expected_amount": null,
+      "actual_amount": null
+    }
+  ]
+}
